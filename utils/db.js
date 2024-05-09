@@ -24,13 +24,21 @@ class DBClient {
   }
 
   async nbUsers() {
-    const users = this.client.collection('users');
-    return users.countDocuments();
+    try {
+      const users = this.client.collection('users');
+      return users.countDocuments();
+    } catch (e) {
+      console.log('Error: nbUsers');
+    }
   }
 
   async nbFiles() {
-    const files = this.client.collection('files');
-    return files.countDocuments();
+    try {
+      const files = this.client.collection('files');
+      return files.countDocuments();
+    } catch (e) {
+      console.log('Error: nbFiles');
+    }
   }
 }
 

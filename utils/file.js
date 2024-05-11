@@ -15,6 +15,10 @@ const fileClient = {
 
     let errorMessage = null;
 
+    if (parentId === '0') {
+      parentId = 0;
+    }
+
     let parentFile;
 
     if (!name) {
@@ -27,7 +31,6 @@ const fileClient = {
       parentFile = await dbClient.files.findOne({ _id: ObjectId(parentId) });
     }
 
-    console.log(parentFile);
     if (!parentFile) {
       errorMessage = 'Parent not found';
     } else if (parentFile.type !== 'folder') {

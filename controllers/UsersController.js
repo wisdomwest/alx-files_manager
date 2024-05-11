@@ -1,7 +1,8 @@
 #!/bin/bash
 import dbClient from '../utils/db';
-import redisClient from '../utils/redis';
 import sha1 from 'sha1';
+import userClient from '../utils/user';
+import { ObjectId } from 'mongodb';
 
 class UsersController {
   static async postNew(req, res) {
@@ -21,20 +22,20 @@ class UsersController {
   }
 
   static async getMe(req, res) {
-    const token = req.header('X-Token');
-    if (!token) {
-      return res.status(401).send({ error: 'Unauthorized' });
-    }
-    const email = await redisClient.get(`auth_${token}`);
-    if (!email) {
-      return res.status(401).send({ error: 'Unauthorized' });
-    }
-    const user = await dbClient.users.findOne({ email });
+    const { userId } = await userClient.getToken(req);
+    
+    const user = await userClient.getUser({ _id: ObjectId(userId) });
+
     if (!user) {
       return res.status(401).send({ error: 'Unauthorized' });
     }
-    return res.status(200).send({ id: user._id, email: user.email });
-  }
+
+    const parse = { id: user._id, ...user };
+    delete parse.password;
+    delete parse._id;
+
+    return res.status(200).send(parse);
+  }   
 }
 
 export default UsersController;

@@ -16,60 +16,33 @@ db.users.insertMany([
 ]);
 EOF
 
-# Insert files
 mongosh <<EOF
 use files_manager
+
+// Inserting random files
 var files = [];
-var types = ['folder', 'file', 'image'];
-var base64Data = 'SGVsbG8gV2Vic3RhY2shCg=='; // Placeholder for actual Base64 data
-
-for (var i = 1; i <= 10; i++) {
-  var typeIndex = Math.floor(Math.random() * types.length);
-  var fileType = types[typeIndex];
-  
-  var fileObject = {
-    name: 'File ' + i,
-    type: fileType,
-    parentId: '0', // Default parent ID is 0 for the root
-    isPublic: false // Default isPublic is false
-  };
-  
-  if (fileType === 'file' || fileType === 'image') {
-    fileObject.data = base64Data; // Assign Base64 data for file/image types
-  }
-  
-  files.push(fileObject);
+for (var i = 1; i <= 28; i++) {
+  files.push({ name: 'File ' + i, size: Math.floor(Math.random() * 100) });
 }
-
 db.files.insertMany(files);
+
+// Inserting specific files
+var file1 = {
+  name: "myText.txt",
+  type: "file",
+  data: "SGVsbG8gV2Vic3RhY2shCg==", // Base64 encoded "Hello Webstacks!"
+  isPublic: false,
+  parentId: 0,
+};
+
+var folder1 = {
+  name: "images",
+  type: "folder",
+  isPublic: false,
+  parentId: 0,
+};
+
+db.files.insertOne(file1);
+db.files.insertOne(folder1);
 EOF
-
-# Insert files
-mongosh <<EOF
-use files_manager
-var files = [];
-var types = ['folder', 'file', 'image'];
-var base64Data = 'SGVsbG8gV2Vic3RhY2shCg=='; // Placeholder for actual Base64 data
-
-for (var i = 1; i <= 20; i++) {
-  var typeIndex = Math.floor(Math.random() * types.length);
-  var fileType = types[typeIndex];
-  
-  var fileObject = {
-    name: 'File ' + i,
-    type: fileType,
-    parentId: '7ba1cb98-6b68-435a-9068-0e47f5e67017', // Default parent ID is 0 for the root
-    isPublic: false // Default isPublic is false
-  };
-  
-  if (fileType === 'file' || fileType === 'image') {
-    fileObject.data = base64Data; // Assign Base64 data for file/image types
-  }
-  
-  files.push(fileObject);
-}
-
-db.files.insertMany(files);
-EOF
-
 

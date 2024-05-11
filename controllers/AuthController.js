@@ -1,5 +1,6 @@
 import dbClient from "../utils/db";
 import redisClient from "../utils/redis";
+import userClient from "../utils/user";
 import sha1 from "sha1";
 import { v4 as uuidv4 } from "uuid";
 
@@ -31,22 +32,18 @@ class AuthController {
 
     const token = uuidv4();
     const key = `auth_${token}`;
-    await redisClient.set(key, email, 86400);
+    await redisClient.set(key, user._id.toString(), 86400);
     return res.status(200).send({ token });
   }
 
   static async getDisconnect(req, res) {
-    const token = req.header("X-Token");
-    if (!token) {
+    const { userId, token } = await userClient.getToken(req);
+    if (!userId) {
       return res.status(401).send({ error: "Unauthorized" });
     }
 
-    const email = await redisClient.get(`auth_${token}`);
-    if (!email) {
-      return res.status(401).send({ error: "Unauthorized" });
-    }
+    await redisClient.del(token);
 
-    await redisClient.del(`auth_${token}`);
     return res.status(204).send();
   }
 }

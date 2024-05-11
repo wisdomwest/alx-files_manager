@@ -1,37 +1,38 @@
-import dbClient from "../utils/db";
 import fileClient from '../utils/file';
+import userClient from "../utils/user";
+import { ObjectId } from 'mongodb';
 
 const FOLDER_PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
 
 class FilesController {
   static async postUpload(req, res) {
-    const { user } = req;
-    const { error, filedata } = await fileClient.validateFile(req);
-    console.log(filedata);
-    console.log(error);
-    if (error) {
-      return res.status(400).json({ error });
+    const { userId } = await userClient.getToken(req);
+
+    if (!userClient.isvalid(userId)) {
+      return res.status(401).send({ error: 'Unauthorized' });
     }
 
-    const { name, type, isPublic, parentId, data } = filedata;
+    const user = await userClient.getUser({ _id: ObjectId(userId) });
 
-    const file = {
-      userId: user.id,
-      name,
-      type,
-      isPublic,
-      parentId,
-    };
-
-    const newFile = await dbClient.files.insertOne(file);
-    console.log(newFile);
-
-    if (type !== 'folder') {
-      const path = `${FOLDER_PATH}/${newFile.id}`;
-      await fileClient.saveFile(path, data);
+    if (!user) {
+      return res.status(401).send({ error: 'Unauthorized' });
     }
 
-    return res.status(201).json(newFile);
+    const { error: validationError, filedata } = await fileClient.validateFile(req);
+
+    if (validationError) {
+      return res.status(400).send({ error: validationError });
+    }
+
+    if (filedata.parentId !== 0 && !userClient.isvalid(filedata.parentId)) { return response.status(400).send({ error: 'Parent not found' }); }
+
+    const { error: saveError, file } = await fileClient.saveFile(userId, filedata, FOLDER_PATH);
+
+    if (saveError) {
+      return res.status(400).send({ error: saveError });
+    }
+
+    return res.status(201).send(file);
   }
 }
 

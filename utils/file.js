@@ -94,7 +94,19 @@ const fileClient = {
     delete process._id;
 
     return process;
-  }
+  },
+
+  async getFile(request) {
+    const file = await dbClient.files.findOne(request);
+
+    return file;
+  },
+
+  async getFilesParent(request) {
+    const files = await dbClient.files.aggregate(request);
+
+    return files;
+  },
 };
 
 export default fileClient;

@@ -98,10 +98,8 @@ class FilesController {
     const fileId = req.params.id;
     if (!fileId) return res.status(404).send({ error: 'Not found' });
 
-    const file = await dbClient.files.findOne({ _id: ObjectId(fileId) });
+    const file = await dbClient.files.findOne({ _id: ObjectId(fileId), userId });
     if (!file) return res.status(404).send({ error: 'Not found' });
-
-    if (file.userId.toString() !== userId) return res.status(404).send({ error: 'Not found' });
 
     return res.status(200).json({
       id: file._id,
@@ -117,18 +115,12 @@ class FilesController {
     const token = req.header('X-Token');
     if (!token) return res.status(401).send({ error: 'Unauthorized' });
 
-    const page = req.query.page ? parseInt(req.query.page, 10) : 0;
+    const page = parseInt(req.query.page) || 0;
 
     const userId = await redisClient.get(`auth_${token}`);
-    const user = await dbClient.users.findOne({ _id: ObjectId(userId) });
-    if (!user) return res.status(401).send({ error: 'Unauthorized' });
+    if (!userId) return res.status(401).send({ error: 'Unauthorized' });
 
-    const parentId = req.query.parentId ? req.query.parentId : 0;
-    if (parentId !== 0) {
-      const parent = await dbClient.files.findOne({ _id: ObjectId(parentId) });
-      if (!parent) return res.status(400).send({ error: 'Parent not found' });
-      if (parent.type !== 'folder') return res.status(400).send({ error: 'Parent is not a folder' });
-    }
+    const parentId = req.query.parentId || '0';
 
     const files = await dbClient.files
       .find({ userId, parentId })

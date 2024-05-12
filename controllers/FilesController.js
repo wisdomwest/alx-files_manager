@@ -150,8 +150,6 @@ class FilesController {
       return res.json([]);
     }
 
-
-    const collection = dbClient.files;
     const match = {
       userId: user._id,
     };
@@ -160,7 +158,7 @@ class FilesController {
       match.parentId = parentId;
     }
 
-    const files = await collection.aggregate([
+    const files = await dbClient.files.aggregate([
         { $match: match },
         { $skip: page * 20 },
         { $limit: 20 },
@@ -181,8 +179,7 @@ class FilesController {
             },
           },
         },
-      ])
-      .toArray();
+      ]).toArray();
 
     return res.status(200).json(files);
   }

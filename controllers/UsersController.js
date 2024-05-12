@@ -1,8 +1,8 @@
 #!/bin/bash
-import dbClient from '../utils/db';
 import sha1 from 'sha1';
-import userClient from '../utils/user';
 import { ObjectId } from 'mongodb';
+import dbClient from '../utils/db';
+import userClient from '../utils/user';
 
 class UsersController {
   static async postNew(req, res) {
@@ -18,12 +18,12 @@ class UsersController {
       return res.status(400).send({ error: 'Already exist' });
     }
     const newUser = await dbClient.users.insertOne({ email, password: sha1(password) });
-    return res.status(201).send({ id: newUser.insertedId.toString(), email: email });
+    return res.status(201).send({ id: newUser.insertedId.toString(), email });
   }
 
   static async getMe(req, res) {
     const { userId } = await userClient.getToken(req);
-    
+
     const user = await userClient.getUser({ _id: ObjectId(userId) });
 
     if (!user) {
@@ -35,7 +35,7 @@ class UsersController {
     delete parse._id;
 
     return res.status(200).send(parse);
-  }   
+  }
 }
 
 export default UsersController;

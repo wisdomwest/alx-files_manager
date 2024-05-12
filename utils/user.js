@@ -1,6 +1,6 @@
-import redisClient from "./redis";
-import dbClient from "./db";
 import { ObjectId } from 'mongodb';
+import redisClient from './redis';
+import dbClient from './db';
 
 const userClient = {
   isvalid(id) {
@@ -13,7 +13,7 @@ const userClient = {
   },
 
   async getToken(request) {
-    const data = { userId: null,  token: null };
+    const data = { userId: null, token: null };
 
     const token = request.header('X-Token');
 

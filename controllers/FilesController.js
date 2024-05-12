@@ -1,10 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
-import { getMongoInstance,  ObjectId } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { promisify } from 'util';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
-import mime from 'mime-types';
 
 class FilesController {
   static async postUpload(req, res) {
@@ -23,7 +22,7 @@ class FilesController {
       return res.status(400).send({ error: 'Missing type' });
     }
 
-    const data = req.body.data;
+    const { data } = req.body;
     if (!data && type !== 'folder') {
       return res.status(400).send({ error: 'Missing data' });
     }
@@ -200,45 +199,6 @@ class FilesController {
     }
 
     return res.status(200).json(file.value);
-  }
-
-  static async getFile(req, res) {
-    try {
-      const fileId = req.params.id;
-      const { userId } = req;
-      const file = await getMongoInstance().dbClient.files.findOne({ _id: ObjectId(fileId) });
-
-      if (!file) {
-        res.status(404).json({ error: 'Not found' });
-        return;
-      }
-
-      if (!file.isPublic && (!userId || file.userId !== userId.toString())) {
-        res.status(404).json({ error: 'Not found' });
-        return;
-      }
-
-      if (file.type === 'folder') {
-        res.status(400).json({ error: "A folder doesn't have content" });
-        return;
-      }
-
-      const filePath = path.join(__dirname, '..', 'uploads', file.id.toString());
-      console.log(filePath);
-      if (!fs.existsSync(filePath)) {
-        res.status(404).json({ error: 'Not found' });
-        return;
-      }
-
-      const mimeType = mime.lookup(file.name);
-      const fileStream = fs.createReadStream(filePath);
-      fileStream.on('open', () => {
-        res.set('Content-Type', mimeType);
-        fileStream.pipe(res);
-      });
-    } catch (err) {
-      res.status(500).json({ error: 'Internal server error' });
-    }
   }
 }
 

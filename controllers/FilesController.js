@@ -90,15 +90,12 @@ class FilesController {
   static async getShow(req, res) {
     const token = req.headers['x-token'];
     const fileId = req.params.id;
-
-    if (!token) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
     const key = `auth_${token}`;
     const userId = await redisClient.get(key);
 
-    if (!userId) {
+    const user = await dbClient.users.findOne({ _id: ObjectId(userId) });
+
+    if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -122,23 +119,25 @@ class FilesController {
     const token = req.headers['x-token'];
     const parentId = req.query.parentId || '0';
     const page = parseInt(req.query.page, 10) || 0;
-
-    if (!token) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
     const key = `auth_${token}`;
     const userId = await redisClient.get(key);
 
-    if (!userId) {
+    const user = await dbClient.users.findOne({ _id: ObjectId(userId) });
+
+    if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
+
     const files = await dbClient.files
-      .find({ userId, parentId })
+      .find({ parentId })
       .skip(page * 20)
       .limit(20)
       .toArray();
+
+    if (!files) {
+      return res.status(200).json([]);
+    }
 
     return res.status(200).json(files);
   }

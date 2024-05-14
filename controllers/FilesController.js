@@ -4,6 +4,7 @@ import { ObjectId } from 'mongodb';
 import { promisify } from 'util';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
+import mime from 'mime-types';
 
 class FilesController {
   static async postUpload(req, res) {
@@ -198,6 +199,44 @@ class FilesController {
     }
 
     return res.status(200).json(file.value);
+  }
+
+  static async getFile(req, res) {
+    const fileId = req.params.id;
+    const token = req.headers['x-token'];
+    const userId = await redisClient.get(`auth_${token}`);
+
+    let file;
+
+    file = await dbClient.files.findOne({ _id: ObjectId(fileId) });
+
+    if (!file) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+
+    if (!file.isPublic) {
+      const user = await dbClient.users.findOne({ _id: ObjectId(userId) });
+      if (!user || user._id.toString() !== file.userId.toString()) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+    }
+
+    if (file.type === 'folder') {
+      return res.status(400).json({ error: 'A folder doesn\'t have content' });
+    }
+
+    const read = promisify(fs.readFile);
+
+    try {
+      const data = await read(file.localPath);
+      console.log(data);
+
+      return res
+        .set('Content-Type', mime.lookup(file.name))
+        .send(data);
+    } catch (err) {
+      return res.status(404).json({ error: 'Not found' });
+    }
   }
 }
 

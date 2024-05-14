@@ -2,9 +2,9 @@ import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import { ObjectId } from 'mongodb';
 import { promisify } from 'util';
+import mime from 'mime-types';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
-import mime from 'mime-types';
 
 class FilesController {
   static async postUpload(req, res) {
@@ -129,7 +129,6 @@ class FilesController {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-
     const files = await dbClient.files
       .find({ parentId })
       .skip(page * 20)
@@ -206,9 +205,7 @@ class FilesController {
     const token = req.headers['x-token'];
     const userId = await redisClient.get(`auth_${token}`);
 
-    let file;
-
-    file = await dbClient.files.findOne({ _id: ObjectId(fileId) });
+    const file = await dbClient.files.findOne({ _id: ObjectId(fileId) });
 
     if (!file) {
       return res.status(404).json({ error: 'Not found' });

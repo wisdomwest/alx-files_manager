@@ -1,4 +1,10 @@
-##0x04. Files manager
+#0x04. Files manager
+
+AUTHORS:
+<li>ISRAEL AGI(israelkhan217@gmail.com)</li>
+
+<li>WISDOM KOOME</li>
+
 Back-end
 JavaScript
 ES6

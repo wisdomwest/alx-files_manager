@@ -181,3 +181,56 @@ parentId: same as the value received - if not present: 0
 localPath: for a type=file|image, the absolute path to the file save in local
 Return the new file with a status code 201
 
+TASK 6: Get and list file
+mandatory
+In the file routes/index.js, add 2 new endpoints:
+
+GET /files/:id => FilesController.getShow
+GET /files => FilesController.getIndex
+In the file controllers/FilesController.js, add the 2 new endpoints:
+
+GET /files/:id should retrieve the file document based on the ID:
+
+Retrieve the user based on the token:
+If not found, return an error Unauthorized with a status code 401
+If no file document is linked to the user and the ID passed as parameter, return an error Not found with a status code 404
+Otherwise, return the file document
+GET /files should retrieve all users file documents for a specific parentId and with pagination:
+
+Retrieve the user based on the token:
+If not found, return an error Unauthorized with a status code 401
+Based on the query parameters parentId and page, return the list of file document
+parentId:
+No validation of parentId needed - if the parentId is not linked to any user folder, returns an empty list
+By default, parentId is equal to 0 = the root
+Pagination:
+Each page should be 20 items max
+page query parameter starts at 0 for the first page. If equals to 1, it means it’s the second page (form the 20th to the 40th), etc…
+Pagination can be done directly by the aggregate of MongoDB
+
+TASK 7: File publish/unpublish
+mandatory
+In the file routes/index.js, add 2 new endpoints:
+
+PUT /files/:id/publish => FilesController.putPublish
+PUT /files/:id/publish => FilesController.putUnpublish
+In the file controllers/FilesController.js, add the 2 new endpoints:
+
+PUT /files/:id/publish should set isPublic to true on the file document based on the ID:
+
+Retrieve the user based on the token:
+If not found, return an error Unauthorized with a status code 401
+If no file document is linked to the user and the ID passed as parameter, return an error Not found with a status code 404
+Otherwise:
+Update the value of isPublic to true
+And return the file document with a status code 200
+PUT /files/:id/unpublish should set isPublic to false on the file document based on the ID:
+
+Retrieve the user based on the token:
+If not found, return an error Unauthorized with a status code 401
+If no file document is linked to the user and the ID passed as parameter, return an error Not found with a status code 404
+Otherwise:
+Update the value of isPublic to false
+And return the file document with a status code 200
+
+

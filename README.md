@@ -233,4 +233,35 @@ Otherwise:
 Update the value of isPublic to false
 And return the file document with a status code 200
 
+TASK 8: In the file routes/index.js, add one new endpoint:
 
+GET /files/:id/data => FilesController.getFile
+In the file controllers/FilesController.js, add the new endpoint:
+
+GET /files/:id/data should return the content of the file document based on the ID:
+
+If no file document is linked to the ID passed as parameter, return an error Not found with a status code 404
+If the file document (folder or file) is not public (isPublic: false) and no user authenticate or not the owner of the file, return an error Not found with a status code 404
+If the type of the file document is folder, return an error A folder doesn't have content with a status code 400
+If the file is not locally present, return an error Not found with a status code 404
+Otherwise:
+By using the module mime-types, get the MIME-type based on the name of the file
+Return the content of the file with the correct MIME-type
+
+TASK 9: Update the endpoint POST /files endpoint to start a background processing for generating thumbnails for a file of type image:
+
+Create a Bull queue fileQueue
+When a new image is stored (in local and in DB), add a job to this queue with the userId and fileId
+Create a file worker.js:
+
+By using the module Bull, create a queue fileQueue
+Process this queue:
+If fileId is not present in the job, raise an error Missing fileId
+If userId is not present in the job, raise an error Missing userId
+If no document is found in DB based on the fileId and userId, raise an error File not found
+By using the module image-thumbnail, generate 3 thumbnails with width = 500, 250 and 100 - store each result on the same location of the original file by appending _<width size>
+Update the endpoint GET /files/:id/data to accept a query parameter size:
+
+size can be 500, 250 or 100
+Based on size, return the correct local file
+If the local file doesn’t exist, return an error Not found with a status code 404
